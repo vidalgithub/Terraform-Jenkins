@@ -15,7 +15,7 @@ pipeline {
             steps {
                 script {
                     // Fetch AWS credentials from Vault using a Docker container with Vault CLI
-                    def vaultContainer = docker.image('hashicorp/vault')
+                    def vaultContainer = docker.image('hashicorp/vault:1.14.0') // Specify version to avoid potential issues
                     vaultContainer.inside {
                         def awsAccessKeyId = sh(script: 'vault kv get -field=AWS_ACCESS_KEY_ID mycreds/aws-creds/vault-admin', returnStdout: true).trim()
                         def awsSecretAccessKey = sh(script: 'vault kv get -field=AWS_SECRET_ACCESS_KEY mycreds/aws-creds/vault-admin', returnStdout: true).trim()
