@@ -23,6 +23,10 @@ pipeline {
                     args '-e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY --entrypoint=""'
                 }
             }
+        environment {
+            AWS_ACCESS_KEY_ID     = credentials('AWS_ACCESS_KEY_ID')
+            AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+        }
             stages {
                 stage('Verify Docker Setup') {
                     steps {
