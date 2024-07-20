@@ -10,14 +10,14 @@ pipeline {
     agent {
         docker { 
             image 'hashicorp/terraform:1.6.0' 
-            args '-e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY'  // Pass AWS credentials without resetting entrypoint
+            args '-e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY'  // Pass AWS credentials
         }
     }
 
     stages {
         stage('Verify Docker Setup') {
             steps {
-                sh '--version'  // Ensure Terraform command works
+                sh 'version'  // Ensure Terraform command works
             }
         }
         
@@ -33,9 +33,9 @@ pipeline {
 
         stage('Plan') {
             steps {
-                sh 'cd terraform && init'
-                sh 'cd terraform && plan -out=tfplan'
-                sh 'cd terraform && show -no-color tfplan > tfplan.txt'
+                sh 'init'
+                sh 'plan -out=tfplan'
+                sh 'show -no-color tfplan > tfplan.txt'
             }
         }
 
@@ -57,8 +57,8 @@ pipeline {
 
         stage('Apply') {
             steps {
-                sh 'cd terraform && apply -input=false tfplan'
-                sh 'terraform --version'
+                sh 'apply -input=false tfplan'
+                sh 'version'
             }
         }
     }
