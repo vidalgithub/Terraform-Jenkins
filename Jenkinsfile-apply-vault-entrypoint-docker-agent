@@ -1,0 +1,81 @@
+pipeline {
+    parameters {
+        booleanParam(name: 'autoApprove', defaultValue: false, description: 'Automatically run apply after generating plan?')
+    }
+
+    environment {
+        // Define environment variables to be used within the pipeline
+        AWS_ACCESS_KEY_ID     = '' // Initially empty
+        AWS_SECRET_ACCESS_KEY = '' // Initially empty
+    }
+
+    agent {
+        docker { 
+            image 'hashicorp/terraform:1.6.0' 
+            args '-e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY --entrypoint=""'  // Pass AWS credentials and reset entrypoint
+        }
+    }
+
+    stages {
+        stage('Fetch AWS Credentials from Vault') {
+            steps {
+                script {
+                    // Fetch AWS credentials from Vault
+                    def vaultResponse = sh(script: "vault kv get -field=AWS_ACCESS_KEY_ID mycreds/aws-creds/vault-admin", returnStdout: true).trim()
+                    def vaultSecretResponse = sh(script: "vault kv get -field=AWS_SECRET_ACCESS_KEY mycreds/aws-creds/vault-admin", returnStdout: true).trim()
+
+                    // Set environment variables
+                    env.AWS_ACCESS_KEY_ID = vaultResponse
+                    env.AWS_SECRET_ACCESS_KEY = vaultSecretResponse
+                }
+            }
+        }
+        
+        stage('Verify Docker Setup') {
+            steps {
+                sh 'terraform --version'  // Ensure Terraform command works
+            }
+        }
+        
+        stage('Checkout') {
+            steps {
+                script {
+                    dir("terraform") {
+                        git "https://github.com/yeshwanthlm/Terraform-Jenkins.git"
+                    }
+                }
+            }
+        }
+
+        stage('Plan') {
+            steps {
+                sh 'cd terraform && terraform init'
+                sh 'cd terraform && terraform plan -out=tfplan'
+                sh 'cd terraform && terraform show -no-color tfplan > tfplan.txt'
+            }
+        }
+
+        stage('Approval') {
+            when {
+                not {
+                    equals expected: true, actual: params.autoApprove
+                }
+            }
+
+            steps {
+                script {
+                    def plan = readFile 'terraform/tfplan.txt'
+                    input message: "Do you want to apply the plan?",
+                          parameters: [text(name: 'Plan', description: 'Please review the plan', defaultValue: plan)]
+                }
+            }
+        }
+
+        stage('Apply') {
+            steps {
+                sh 'cd terraform && terraform apply -input=false tfplan'
+                sh 'terraform --version'
+            }
+        }
+    }
+}
