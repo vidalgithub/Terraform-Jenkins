@@ -1,6 +1,6 @@
 pipeline {
     parameters {
-        booleanParam(name: 'autoApprove', defaultValue: false, description: 'Automatically run apply after generating plan?')
+        booleanParam(name: 'autoApprove', defaultValue: false, description: 'After fetching AWS creds from Vault, Automatically run apply after generating plan?')
     }
 
     environment {
