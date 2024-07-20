@@ -4,7 +4,7 @@ provider "aws" {
 
 resource "aws_security_group" "tf_jenkins_instance" {
   name        = "TF-Jenkins-Instance"
-  description = "Allow inbound traffic to specific ports and outbound to all destinations"
+  description = "From Jenkins - Allow inbound traffic to specific ports and outbound to all destinations"
 
   ingress {
     from_port   = 22
