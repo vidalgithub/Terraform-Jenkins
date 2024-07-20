@@ -3,10 +3,6 @@ pipeline {
         booleanParam(name: 'autoApprove', defaultValue: false, description: 'After fetching AWS creds from Vault, Automatically run apply after generating plan?')
     }
 
-    environment {
-        VAULT_ADDR = 'http://your-vault-server:8200' // Vault server address
-    }
-
     agent any
 
     stages {
