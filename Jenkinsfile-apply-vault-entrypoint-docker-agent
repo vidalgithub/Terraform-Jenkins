@@ -4,8 +4,7 @@ pipeline {
     }
 
     environment {
-        AWS_ACCESS_KEY_ID     = ''
-        AWS_SECRET_ACCESS_KEY = ''
+        VAULT_ADDR = 'http://your-vault-server:8200' // Vault server address
     }
 
     agent any
@@ -14,15 +13,11 @@ pipeline {
         stage('Fetch AWS Credentials from Vault') {
             steps {
                 script {
-                    // Fetch AWS credentials from Vault using a Docker container with Vault CLI
-                    def vaultContainer = docker.image('hashicorp/vault:1.17.2') // Specify version to avoid potential issues
-                    vaultContainer.inside {
-                        def awsAccessKeyId = sh(script: 'vault kv get -field=AWS_ACCESS_KEY_ID mycreds/aws-creds/vault-admin', returnStdout: true).trim()
-                        def awsSecretAccessKey = sh(script: 'vault kv get -field=AWS_SECRET_ACCESS_KEY mycreds/aws-creds/vault-admin', returnStdout: true).trim()
-
-                        // Set environment variables
-                        env.AWS_ACCESS_KEY_ID = awsAccessKeyId
-                        env.AWS_SECRET_ACCESS_KEY = awsSecretAccessKey
+                    withVault([vaultSecrets: [[path: 'mycreds/aws-creds/vault-admin', secretValues: [
+                        [$class: 'VaultSecret', vaultKey: 'AWS_ACCESS_KEY_ID', envVar: 'AWS_ACCESS_KEY_ID'],
+                        [$class: 'VaultSecret', vaultKey: 'AWS_SECRET_ACCESS_KEY', envVar: 'AWS_SECRET_ACCESS_KEY']
+                    ]]]]) {
+                        echo "AWS Credentials have been fetched from Vault."
                     }
                 }
             }
