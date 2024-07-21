@@ -17,7 +17,7 @@ pipeline {
     stages {
         stage('Verify Docker Setup') {
             steps {
-                sh 'terraform --version'  // Ensure Terraform command works
+                sh 'terraform version'  // Ensure Terraform command works
             }
         }
         
@@ -58,7 +58,7 @@ pipeline {
         stage('Apply') {
             steps {
                 sh 'cd terraform && terraform apply -input=false tfplan'
-                sh 'terraform --version'
+                sh 'terraform version'
             }
         }
     }
