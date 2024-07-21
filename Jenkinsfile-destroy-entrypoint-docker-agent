@@ -31,15 +31,45 @@ pipeline {
             }
         }
 
+        stage('Plan Destroy') {
+            steps {
+                sh 'cd terraform && terraform init'
+                sh 'cd terraform && terraform plan -destroy -out=tfplan-destroy'
+                sh 'cd terraform && terraform show -no-color tfplan-destroy > tfplan-destroy.txt'
+            }
+        }
+
+        stage('Approval') {
+            when {
+                not {
+                    equals expected: true, actual: params.autoApprove
+                }
+            }
+
+            steps {
+                script {
+                    def plan = readFile 'terraform/tfplan-destroy.txt'
+                    input message: "Do you want to destroy the resources?",
+                          parameters: [text(name: 'Plan', description: 'Please review the destroy plan', defaultValue: plan)]
+                }
+            }
+        }
+
         stage('Destroy') {
             steps {
                 script {
-                    def destroyCommand = 'cd terraform && terraform destroy -input=false'
+                    def destroyCommand = 'cd terraform && terraform apply -destroy -input=false tfplan-destroy'
                     if (params.autoApprove) {
                         destroyCommand += ' -auto-approve'
                     }
                     sh destroyCommand
                 }
+            }
+        }
+
+        stage('Clean Up') {
+            steps {
+                sh 'rm -f terraform/tfplan-destroy terraform/tfplan-destroy.txt'  // Clean up the plan files
             }
         }
     }
