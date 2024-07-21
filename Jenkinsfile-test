@@ -2,18 +2,18 @@ pipeline {
     agent any
 
     environment {
-        VAULT_ADDR = 'http://vault.beitcloud.com:8200'
+        VAULT_ADDR = 'http://your-vault-server:8200'
         VAULT_SECRET_PATH = 'kv-v2/data/mycreds/aws-creds/vault-admin'
     }
 
     stages {
         stage('Fetch Secrets from Vault') {
             steps {
-                withCredentials([string(credentialsId: 'vaultCred', variable: 'VAULT_TOKEN')]) {
-                    script {
+                script {
+                    withVault([vaultCredentialId: 'vaultCred', vaultAddr: VAULT_ADDR]) {
                         def response = sh(
                             script: """
-                                curl -s --header "X-Vault-Token: $VAULT_TOKEN" --request GET $VAULT_ADDR/v1/$VAULT_SECRET_PATH
+                                curl -s --header "X-Vault-Token: \$VAULT_TOKEN" --request GET \$VAULT_ADDR/v1/\$VAULT_SECRET_PATH
                             """,
                             returnStdout: true
                         ).trim()
