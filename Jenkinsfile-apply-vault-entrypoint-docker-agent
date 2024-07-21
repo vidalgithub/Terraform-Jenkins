@@ -11,6 +11,9 @@ pipeline {
                 script {
                     withVault(configuration: [disableChildPoliciesOverride: false, timeout: 60, vaultCredentialId: 'vaultCred', vaultUrl: 'http://vault.beitcloud.com:8200'], vaultSecrets: [[path: 'mycreds/aws-creds/vault-admin', secretValues: [[envVar: 'AWS_ACCESS_KEY_ID', vaultKey: 'access_key_id'], [envVar: 'AWS_SECRET_ACCESS_KEY', vaultKey: 'secret_access_key']]]]) {
                         echo "AWS Credentials have been fetched from Vault."
+                        // Set the environment variables at the pipeline level
+                        env.AWS_ACCESS_KEY_ID = env.AWS_ACCESS_KEY_ID
+                        env.AWS_SECRET_ACCESS_KEY = env.AWS_SECRET_ACCESS_KEY
                     }
                 }
             }
@@ -30,7 +33,11 @@ pipeline {
             stages {
                 stage('Verify Docker Setup') {
                     steps {
+                        sh '''
                         sh 'terraform --version'  // Ensure Terraform command works
+                        echo "AWS_ACCESS_KEY_ID: $AWS_ACCESS_KEY_ID"
+                        echo "AWS_SECRET_ACCESS_KEY: $AWS_SECRET_ACCESS_KEY"
+                        '''
                     }
                 }
 
