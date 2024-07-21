@@ -1,0 +1,38 @@
+pipeline {
+    agent any
+
+    environment {
+        VAULT_ADDR = 'http://vault.beitcloud.com:8200'
+        VAULT_SECRET_PATH = 'kv-v2/data/mycreds/aws-creds/vault-admin'
+    }
+
+    stages {
+        stage('Fetch Secrets from Vault') {
+            steps {
+                withCredentials([string(credentialsId: 'vaultCred', variable: 'VAULT_TOKEN')]) {
+                    script {
+                        def response = sh(
+                            script: """
+                                curl -s --header "X-Vault-Token: $VAULT_TOKEN" --request GET $VAULT_ADDR/v1/$VAULT_SECRET_PATH
+                            """,
+                            returnStdout: true
+                        ).trim()
+
+                        def secrets = readJSON(text: response).data.data
+                        env.AWS_ACCESS_KEY_ID = secrets.aws_access_key
+                        env.AWS_SECRET_ACCESS_KEY = secrets.aws_secret_key
+                    }
+                }
+            }
+        }
+
+        stage('Print Secrets') {
+            steps {
+                script {
+                    echo "AWS_ACCESS_KEY_ID: ${env.AWS_ACCESS_KEY_ID}"
+                    echo "AWS_SECRET_ACCESS_KEY: ${env.AWS_SECRET_ACCESS_KEY}"
+                }
+            }
+        }
+    }
+}
