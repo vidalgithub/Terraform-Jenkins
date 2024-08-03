@@ -9,7 +9,7 @@ pipeline {
 
     agent {
         docker { 
-            image 'hashicorp/terraform:1.6.0' 
+            image 'hashicorp/terraform:1.9.3' 
             args '-e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY --entrypoint=""'  // Pass AWS credentials and reset entrypoint
         }
     }
@@ -25,7 +25,7 @@ pipeline {
             steps {
                 script {
                     dir("terraform") {
-                        git "https://github.com/yeshwanthlm/Terraform-Jenkins.git"
+                        git "https://github.com/vidalgithub/Terraform-Jenkins.git"   //"https://github.com/yeshwanthlm/Terraform-Jenkins.git"
                     }
                 }
             }
