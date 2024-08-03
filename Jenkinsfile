@@ -92,11 +92,12 @@ pipeline {
             when {
                 expression { return params.ACTION == 'APPLY' }
             }
-            agent {
+            agent any
+            /*agent {
                 docker { 
                     image 'amazon/aws-cli' 
                 }
-            }
+            }*/
             steps {
                 script {
                     sh '''
