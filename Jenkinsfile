@@ -9,24 +9,28 @@ pipeline {
     }
 
     agent {
-        docker { 
-            image 'hashicorp/terraform:1.9.3' 
-            args '-e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY --entrypoint=""'  // Pass AWS credentials and reset entrypoint
+        docker {
+            image 'hashicorp/terraform:1.9.3'
+            args '-e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY --entrypoint=""'
         }
     }
 
     stages {
-        stage('Verify Docker Setup') {
-            steps {
-                sh 'terraform --version'  // Ensure Terraform command works
-            }
-        }
+        stage('Terraform and Checkout') {
+            parallel {
+                stage('Verify Docker Setup') {
+                    steps {
+                        sh 'terraform --version'  // Ensure Terraform command works
+                    }
+                }
 
-        stage('Checkout') {
-            steps {
-                script {
-                    dir("terraform") {
-                        git "https://github.com/vidalgithub/Terraform-Jenkins.git"
+                stage('Checkout') {
+                    steps {
+                        script {
+                            dir("terraform") {
+                                git "https://github.com/vidalgithub/Terraform-Jenkins.git"
+                            }
+                        }
                     }
                 }
             }
@@ -37,9 +41,13 @@ pipeline {
                 expression { return params.ACTION == 'APPLY' }
             }
             steps {
-                sh 'cd terraform && terraform init'
-                sh 'cd terraform && terraform plan -out=tfplan'
-                sh 'cd terraform && terraform show -no-color tfplan > tfplan.txt'
+                script {
+                    dir("terraform") {
+                        sh 'terraform init'
+                        sh 'terraform plan -out=tfplan'
+                        sh 'terraform show -no-color tfplan > tfplan.txt'
+                    }
+                }
             }
         }
 
@@ -48,9 +56,13 @@ pipeline {
                 expression { return params.ACTION == 'DESTROY' }
             }
             steps {
-                sh 'cd terraform && terraform init'
-                sh 'cd terraform && terraform plan -destroy -out=tfplan-destroy'
-                sh 'cd terraform && terraform show -no-color tfplan-destroy > tfplan-destroy.txt'
+                script {
+                    dir("terraform") {
+                        sh 'terraform init'
+                        sh 'terraform plan -destroy -out=tfplan-destroy'
+                        sh 'terraform show -no-color tfplan-destroy > tfplan-destroy.txt'
+                    }
+                }
             }
         }
 
@@ -75,7 +87,11 @@ pipeline {
                 expression { return params.ACTION == 'APPLY' }
             }
             steps {
-                sh 'cd terraform && terraform apply -input=false tfplan'
+                script {
+                    dir("terraform") {
+                        sh 'terraform apply -input=false tfplan'
+                    }
+                }
             }
         }
 
@@ -84,25 +100,10 @@ pipeline {
                 expression { return params.ACTION == 'DESTROY' }
             }
             steps {
-                sh 'cd terraform && terraform apply -destroy -input=false tfplan-destroy'
-            }
-        }
-
-        stage('Verify') {
-            when {
-                expression { return params.ACTION == 'APPLY' }
-            }
-            agent any
-            /*agent {
-                docker { 
-                    image 'amazon/aws-cli' 
-                }
-            }*/
-            steps {
                 script {
-                    sh '''
-                        aws ec2 describe-instances --filters "Name=tag:Name,Values=TF-Jenkins-Instance" --query "Reservations[*].Instances[*].{Instance:InstanceId,Name:Tags[?Key=='Name'].Value|[0]}" --output json
-                    '''
+                    dir("terraform") {
+                        sh 'terraform apply -destroy -input=false tfplan-destroy'
+                    }
                 }
             }
         }
