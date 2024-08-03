@@ -1,6 +1,6 @@
 pipeline {
     parameters {
-        choice(name: 'ACTION', choices: ['APPLY', 'DESTROY'], description: 'Choose action to perform')
+        choice(name: 'ACTION', choices: ['APPLY', 'DESTROY'], description: 'Choose action to perform', defaultValue: 'APPLY')
         booleanParam(name: 'autoApprove', defaultValue: false, description: 'Automatically run the selected action after generating plan?')
     }
     environment {
