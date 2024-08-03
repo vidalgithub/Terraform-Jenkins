@@ -49,6 +49,13 @@ pipeline {
                 sh "pwd;cd terraform/ ; terraform apply -input=false tfplan"
             }
         }
+        stage('Verify') {
+            steps {
+                script {
+                    sh 'aws ec2 describe-instances --filters "Name=tag:Name,Values=TF-Jenkins-Instance" --query "Reservations[*].Instances[*].{Instance:InstanceId,Name:Tags[?Key==\'Name\'].Value|[0]}" --output json'
+                }
+            }
+        }
     }
 
   }
