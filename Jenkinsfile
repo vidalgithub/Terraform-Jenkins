@@ -11,7 +11,7 @@ pipeline {
     agent {
         docker { 
             image 'hashicorp/terraform:1.9.3' 
-            args '-e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY --entrypoint=""'  // Passing AWS credentials and reset entrypoint
+            args '-e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY --entrypoint=""'  // Pass AWS credentials and reset entrypoint
         }
     }
 
@@ -91,6 +91,12 @@ pipeline {
         stage('Verify') {
             when {
                 expression { return params.ACTION == 'APPLY' }
+            }
+            agent {
+                docker { 
+                    image 'amazon/aws-cli' 
+                    args '-e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY --entrypoint=""'  // Pass AWS credentials and reset entrypoint
+                }
             }
             steps {
                 script {
