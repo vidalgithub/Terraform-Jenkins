@@ -95,7 +95,6 @@ pipeline {
             agent {
                 docker { 
                     image 'amazon/aws-cli' 
-                    args '-e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY --entrypoint=""'  // Pass AWS credentials and reset entrypoint
                 }
             }
             steps {
