@@ -3,7 +3,7 @@ pipeline {
     agent {
         docker { 
             image 'hashicorp/terraform:1.6.0' 
-            args '-e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY --entrypoint=""'  // Pass AWS credentials and reset entrypoint
+            args '--entrypoint=""'  // Pass AWS credentials and reset entrypoint
         }
     }
 
