@@ -1,5 +1,11 @@
 pipeline {
-   agent  any
+   //agent  any
+    agent {
+        docker { 
+            image 'hashicorp/terraform:1.6.0' 
+            args '-e AWS_ACCESS_KEY_ID -e AWS_SECRET_ACCESS_KEY --entrypoint=""'  // Pass AWS credentials and reset entrypoint
+        }
+    }
 
     parameters {
         booleanParam(name: 'autoApprove', defaultValue: false, description: 'Automatically run apply after generating plan?')
