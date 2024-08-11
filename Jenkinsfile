@@ -16,6 +16,14 @@ pipeline {
     }
 
     stages {
+        stage('Clean Workspace') {
+            steps {
+                script {
+                    echo 'Cleaning workspace...'
+                    sh 'find . -maxdepth 1 ! -name . -exec rm -rf {} +'
+                }
+            }
+        }
         stage('Terraform and Checkout') {
             parallel {
                 stage('Verify Docker Setup') {
