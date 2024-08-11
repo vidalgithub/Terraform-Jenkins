@@ -1,4 +1,4 @@
-provider "aws" {
+/*provider "aws" {
   region = "us-east-1"
 }
 
@@ -91,3 +91,4 @@ resource "aws_instance" "tf_jenkins_instance" {
 output "public_ip" {
   value = aws_instance.tf_jenkins_instance.public_ip
 }
+*/
